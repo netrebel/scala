@@ -1,4 +1,4 @@
-package safarionline
+package safarionline.calculator
 
 import scala.collection.mutable
 
