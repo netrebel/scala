@@ -13,8 +13,18 @@ case class Recipe(ingredients: Map[String, Mass],
       (name, need) <- ingredients.toList
       have = kitchen.getOrElse(name, Grams(0))
       //Guard: Is the amount that we have less that what we need
-      if have.compareTo(need) < 0
+      if have < need
     } yield name
+}
+
+trait Measured {
+
+  def amount: Double
+
+  def symbol: String
+
+  override def toString: String = amount + symbol
+
 }
 
 /**
@@ -22,30 +32,29 @@ case class Recipe(ingredients: Map[String, Mass],
   * Also known as Algebraic data type.
   * By using abstract "defs" we can overrider them with whatever we want to in the implementations.
   */
-sealed abstract class Mass() extends Comparable[Mass] {
-  def amount: Double
+sealed abstract class Mass() extends Ordered[Mass] with Measured {
 
   def toGrams: Grams
 
-  def compareTo(that: Mass): Int = (this.toGrams.amount - that.toGrams.amount).toInt
+  def compare(that: Mass): Int = (this.toGrams.amount - that.toGrams.amount).toInt
 }
 
 case class Grams(amount: Double) extends Mass {
-  override def toGrams: Grams = this
+  override def toGrams = this
 
-  override def toString: String = amount + "g"
+  override def symbol: String = "g"
 }
 
 case class Milligrams(amount: Double) extends Mass {
-  override def toGrams: Grams = Grams(this.amount / 1000)
+  override def toGrams = Grams(this.amount / 1000)
 
-  override def toString: String = amount + "mg"
+  override def symbol: String = "mg"
 }
 
 case class Kilograms(amount: Double) extends Mass {
-  override def toGrams: Grams = Grams(this.amount * 1000)
+  override def toGrams = Grams(this.amount * 1000)
 
-  override def toString: String = amount + "kg"
+  override def symbol: String = "kg"
 }
 
 
