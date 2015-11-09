@@ -56,15 +56,26 @@ object Calculator {
     }
   }
 
-  def calculate(expression: String): Int = {
-    val stack = new mutable.Stack[Int]
+  sealed trait Expression
+
+  case class NumberExpression(value: Int) extends Expression
+
+  case class OperationExpression(lhs: Expression, rhs: Expression, op: Operator) extends Expression
+
+  /**
+    * Parse a postfix notation expression
+    * @param expression Expression
+    * @return Value
+    */
+  def parse(expression: String): Expression = {
+    val stack = new mutable.Stack[Expression]
 
     for (token <- expression.split(" ")) token match {
-      case Number(num) => stack.push(num)
+      case Number(num) => stack.push(NumberExpression(num))
       case Operator(op) =>
-        val rhs: Int = stack.pop()
-        val lhs: Int = stack.pop()
-        stack.push(op.operate(lhs, rhs))
+        val rhs = stack.pop()
+        val lhs = stack.pop()
+        stack.push(OperationExpression(lhs, rhs, op))
 
       case _ => throw new IllegalArgumentException("Illegal character" + token)
     }
@@ -73,11 +84,22 @@ object Calculator {
 
   }
 
+  def calculate(expression: Expression): Int = expression match {
+    case NumberExpression(value) => value
+    case OperationExpression(lhs, rhs, op) => op.operate(calculate(lhs), calculate(rhs))
+  }
+
+  def toInfix(expression: Expression): String = expression match {
+    case NumberExpression(value) => value.toString
+    case OperationExpression(lhs, rhs, op) => s"(${toInfix(lhs)} $op ${toInfix(rhs)})"
+  }
+
   def main(args: Array[String]) {
     if (args.length != 1) {
       throw new IllegalArgumentException("Usage: Calculator <expression>")
     } else {
-      println(calculate(args(0)))
+      val expression = parse(args(0))
+      println(s"${toInfix(expression)} = ${calculate(expression)}")
     }
   }
 }
