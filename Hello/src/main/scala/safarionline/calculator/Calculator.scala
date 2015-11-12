@@ -1,7 +1,5 @@
 package safarionline.calculator
 
-import scala.collection.mutable
-
 /**
   * @author Miguel Reyes
   *         Date: 11/5/15
@@ -9,43 +7,24 @@ import scala.collection.mutable
   */
 object Calculator {
 
-  trait Operator {
-    def operate(lhs: Int, rhs: Int): Int
-  }
+  type Operator = (Int, Int) => Int
 
   object Operator {
 
     val operators: Map[String, Operator] =
-      Map("+" -> Add, "-" -> Subtract, "*" -> Multiply, "/" -> Divide)
+      Map("+" -> (_ + _),
+        "-" -> (_ - _),
+        "*" -> (_ * _),
+        "/" -> (_ / _))
+
+    val tokens = operators map {
+      _.swap
+    }
 
     def unapply(token: String): Option[Operator] = {
       operators.get(token)
 
     }
-  }
-
-  case object Add extends Operator {
-    override def operate(lhs: Int, rhs: Int): Int = lhs + rhs
-
-    override val toString = "+"
-  }
-
-  case object Subtract extends Operator {
-    override def operate(lhs: Int, rhs: Int): Int = lhs - rhs
-
-    override val toString = "-"
-  }
-
-  case object Multiply extends Operator {
-    override def operate(lhs: Int, rhs: Int): Int = lhs * rhs
-
-    override val toString = "*"
-  }
-
-  case object Divide extends Operator {
-    override def operate(lhs: Int, rhs: Int): Int = lhs / rhs
-
-    override val toString = "/"
   }
 
   object Number {
@@ -62,36 +41,41 @@ object Calculator {
 
   case class OperationExpression(lhs: Expression, rhs: Expression, op: Operator) extends Expression
 
+  def step(stack: List[Expression], token: String): List[Expression] = token match {
+    case Number(num) => NumberExpression(num) :: stack
+    case Operator(op) => stack match {
+      //Decompose stack into lhs, rhs and the rest. The rest
+      case lhs :: rhs :: rest => OperationExpression(lhs, rhs, op) :: rest
+      //In case there is not enough operands
+      case _ => throw new IllegalArgumentException("Not enough operands")
+    }
+    case _ => throw new IllegalArgumentException("Illegal character" + token)
+  }
+
   /**
     * Parse a postfix notation expression
     * @param expression Expression
     * @return Value
     */
   def parse(expression: String): Expression = {
-    val stack = new mutable.Stack[Expression]
+    val tokens = expression.split(" ")
 
-    for (token <- expression.split(" ")) token match {
-      case Number(num) => stack.push(NumberExpression(num))
-      case Operator(op) =>
-        val rhs = stack.pop()
-        val lhs = stack.pop()
-        stack.push(OperationExpression(lhs, rhs, op))
-
-      case _ => throw new IllegalArgumentException("Illegal character" + token)
+    //Fold left on the tokens to create the stack, calling "step" for each member of the stack
+    val stack = tokens.foldLeft(List.empty[Expression]) {
+      step
     }
-
-    stack.pop()
-
+    //Return the result stored in the head
+    stack.head
   }
 
   def calculate(expression: Expression): Int = expression match {
     case NumberExpression(value) => value
-    case OperationExpression(lhs, rhs, op) => op.operate(calculate(lhs), calculate(rhs))
+    case OperationExpression(lhs, rhs, op) => op.apply(calculate(lhs), calculate(rhs))
   }
 
   def toInfix(expression: Expression): String = expression match {
     case NumberExpression(value) => value.toString
-    case OperationExpression(lhs, rhs, op) => s"(${toInfix(lhs)} $op ${toInfix(rhs)})"
+    case OperationExpression(lhs, rhs, op) => s"(${toInfix(lhs)} ${Operator.tokens(op)} ${toInfix(rhs)})"
   }
 
   def main(args: Array[String]) {
