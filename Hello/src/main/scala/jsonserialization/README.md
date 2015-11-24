@@ -1,5 +1,4 @@
-Sample taken from DZone
-https://dzone.com/articles/scala-working-with-json
+Sample taken from DZone https://dzone.com/articles/scala-working-with-json
 
 Sample Json file:
 

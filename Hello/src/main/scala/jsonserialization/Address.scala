@@ -1,3 +1,5 @@
+package jsonserialization
+
 /**
   * @author Miguel Reyes
   *         Date: 11/18/15

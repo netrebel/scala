@@ -1,3 +1,5 @@
+package jsonserialization
+
 import org.scalatest.{Matchers, FlatSpec}
 import play.api.libs.json._
 import Payment._
