@@ -1,4 +1,4 @@
-package week4
+package epfl.week4
 
 /**
  * @author Miguel Reyes

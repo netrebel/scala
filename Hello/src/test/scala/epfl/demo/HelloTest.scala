@@ -1,4 +1,4 @@
-package demo
+package epfl.demo
 
 import org.scalatest.FunSuite
 

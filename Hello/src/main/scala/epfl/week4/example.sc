@@ -1,4 +1,4 @@
-import week4._
+import epfl.week4._
 object example {
   def nth[T](n: Int, xs: List[T]): T =
     if (n == 0) xs.head

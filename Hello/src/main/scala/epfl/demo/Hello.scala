@@ -1,4 +1,4 @@
-package demo
+package epfl.demo
 
 /**
  * @author Miguel Reyes
