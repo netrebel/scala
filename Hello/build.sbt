@@ -10,5 +10,6 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.5" % "test",
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream-experimental" % "2.0-M1",
-  "com.typesafe.play" %% "play-json" % "2.4.2"
+  "com.typesafe.play" %% "play-json" % "2.4.2",
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
 )
