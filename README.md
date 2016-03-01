@@ -1,2 +1,2 @@
 # scala
-Scala test ode
+Scala test code
