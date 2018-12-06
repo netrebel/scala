@@ -1,0 +1,78 @@
+if(project.hasProperty("scalaVersion")) {
+  ext.scalaVersionMain = scalaVersion.substring(0, scalaVersion.lastIndexOf("."))
+} else {
+  ext.scalaVersionMain = "2.11"
+  ext.scalaVersion = "2.11.7"
+}
+
+if(!project.hasProperty("finatraVersion")) {
+  ext.finatraVersion = "2.1.5"
+}
+
+if(finatraVersion.startsWith("1")) {
+  ext.finatraVersionPublish = ""
+} else {
+  ext.finatraVersionPublish = "2"
+}
+
+println("Scala Version: ${scalaVersion}")
+println("Scala Version Main: ${scalaVersionMain}")
+println("Finatra Version: ${finatraVersion}")
+println("Finatra Version Publish: ${finatraVersionPublish}")
+
+apply plugin: 'scala'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+
+  maven { url "http://maven.twttr.com" }
+}
+
+dependencies {
+  compile "org.scala-lang:scala-library:${scalaVersion}",
+    'io.swagger:swagger-core:1.5.7',
+    "io.swagger:swagger-scala-module_${scalaVersionMain}:1.0.1"
+
+  testCompile "org.scalatest:scalatest_${scalaVersionMain}:2.2.4",
+    'joda-time:joda-time:2.7'
+
+  if(finatraVersion.startsWith("1")) {
+    compile "com.twitter:finatra_${scalaVersionMain}:${finatraVersion}"
+  } else {
+    compile "com.twitter.finatra:finatra-http_${scalaVersionMain}:${finatraVersion}"
+  }
+}
+
+sourceSets {
+  main {
+    scala {
+      srcDirs = ['src/main/scala', "src/main/finatra${finatraVersionPublish}"]
+    }
+  }
+  test {
+    scala {
+      srcDirs = ['src/test/scala', "src/test/finatra${finatraVersionPublish}"]
+    }
+  }
+}
+
+compileJava {
+  targetCompatibility = "1.7"
+}
+
+tasks.withType(ScalaCompile) {
+  scalaCompileOptions.useAnt = false
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.7'
+}
+
+apply from: 'publish.gradle'
+
+task runSampleApp(type: JavaExec, description: 'Run the sample application.') {
+  classpath sourceSets.test.runtimeClasspath
+  main = "com.github.xiaodongw.swagger.finatra.SampleApp"
+}
+

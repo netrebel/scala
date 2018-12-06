@@ -1,0 +1,86 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+group = 'com.github.xiaodongw'
+
+version = '0.5.1'
+
+if(!project.hasProperty("ossrhUsername")) {
+  ext.ossrhUsername = ""
+}
+
+if(!project.hasProperty("ossrhPassword")) {
+  ext.ossrhPassword = ""
+}
+
+task javadocJar(type: Jar) {
+  classifier = 'javadoc'
+  from javadoc
+}
+
+task sourcesJar(type: Jar) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+artifacts {
+  archives javadocJar, sourcesJar
+}
+
+signing {
+  required { project.hasProperty("signing.keyId") && gradle.taskGraph.hasTask("uploadArchives") }
+  sign configurations.archives
+}
+
+install {
+  repositories.mavenInstaller {
+    pom.version = "${version}"
+    pom.artifactId = "swagger-finatra${finatraVersionPublish}_${scalaVersionMain}"
+  }
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      pom.project {
+        name "swagger-finatra${finatraVersionPublish}"
+        artifactId "swagger-finatra${finatraVersionPublish}_${scalaVersionMain}"
+        packaging 'jar'
+        // optionally artifactId can be defined here
+        description 'Add Swagger support for Finatra to generate REST API docuemnt'
+        url 'https://github.com/xiaodongw/swagger-finatra/'
+
+        scm {
+          connection 'https://github.com/xiaodongw/swagger-finatra.git'
+          developerConnection 'https://github.com/xiaodongw/swagger-finatra.git'
+          url 'https://github.com/xiaodongw/swagger-finatra.git'
+        }
+
+        licenses {
+          license {
+            name 'The Apache License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        developers {
+          developer {
+            id 'xiaodongw'
+            name 'Xiaodong Wang'
+            email 'xiaodongw79@gmail.com'
+          }
+        }
+      }
+    }
+  }
+}
